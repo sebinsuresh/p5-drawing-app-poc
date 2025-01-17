@@ -39,6 +39,7 @@ function draw() {
   drawPainting();
   drawActive();
   drawPalette();
+  drawHelpText();
 }
 
 function setupPalette() {
@@ -69,6 +70,17 @@ function drawPalette() {
   } else {
     cursor(ARROW);
   }
+}
+
+function drawHelpText() {
+  stroke(0);
+  fill(255);
+  textSize(16);
+  text(
+    "Press 'Esc' to cancel stroke, Press 'R' to reset canvas. No undos.",
+    StartPaletteX,
+    StartPaletteY + SwatchWidth + 20
+  );
 }
 
 function isMouseOverPalette() {
@@ -152,4 +164,14 @@ function persistActiveAndClear() {
   activeStrokeGfx.clear();
 }
 
-function keyPressed() {}
+function keyPressed() {
+  if (currentState === IS_DRAWING && keyCode === ESCAPE) {
+    currentState = IS_HOVERING;
+    currentStrokeVertices = [];
+    activeStrokeGfx.clear();
+  }
+
+  if (currentState === IS_HOVERING && key.toUpperCase() === "R") {
+    paintingGfx.clear();
+  }
+}
