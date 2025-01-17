@@ -35,29 +35,37 @@ function clearCanvas() {
 }
 
 function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-  paintingGfx.resizeCanvas(windowWidth, windowHeight);
-  activeStrokeGfx.resizeCanvas(windowWidth, windowHeight);
+  // resizeCanvas(windowWidth, windowHeight);
+  // paintingGfx.resizeCanvas(windowWidth, windowHeight);
+  // activeStrokeGfx.resizeCanvas(windowWidth, windowHeight);
 }
 
 let currentFillColor = 255;
 
+/** @type {number[][]} */
+let currentStrokeVertices = [];
+
 function mousePressed() {
   currentFillColor = random(100, 250);
+  currentStrokeVertices.push([mouseX, mouseY]);
 }
 
 function mouseDragged() {
   activeStrokeGfx.noStroke();
   activeStrokeGfx.fill(currentFillColor);
-  activeStrokeGfx.rect(
-    min(pmouseX, mouseX),
-    min(pmouseY, mouseY),
-    abs(pmouseX - mouseX),
-    abs(pmouseY - mouseY)
-  );
+
+  currentStrokeVertices.push([mouseX, mouseY]);
+
+  activeStrokeGfx.clear();
+  activeStrokeGfx.beginShape();
+  for (let vtx of currentStrokeVertices) {
+    activeStrokeGfx.vertex(vtx[0], vtx[1]);
+  }
+  activeStrokeGfx.endShape();
 }
 
 function mouseReleased() {
+  currentStrokeVertices = [];
   persistActiveAndClear();
 }
 
