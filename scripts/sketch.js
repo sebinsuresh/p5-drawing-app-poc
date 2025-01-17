@@ -7,19 +7,77 @@ let paintingGfx;
 /** @type {import("p5").Graphics}*/
 let activeStrokeGfx;
 
-const LINE_SEP = 32;
-const HALF_LINE_SEP = LINE_SEP / 2;
+let currentFillColor = 255;
+
+/** @type {number[][]} */
+let currentStrokeVertices = [];
+
+const IS_HOVERING = 0;
+const IS_DRAWING = 1;
+const IS_PICKING_COLOR = 2;
+
+let currentState = IS_HOVERING;
+
+// Palette
+const StartPaletteX = 10;
+const StartPaletteY = 10;
+const SwatchWidth = 40;
+const NumColors = 8;
+/** @type {number[]} */
+const PaletteColors = [];
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   paintingGfx = createGraphics(width, height);
   activeStrokeGfx = createGraphics(width, height);
+
+  setupPalette();
 }
 
 function draw() {
   clearCanvas();
   drawPainting();
   drawActive();
+  drawPalette();
+}
+
+function setupPalette() {
+  for (let i = 0; i < NumColors; i++) {
+    PaletteColors.push(Math.floor(i * (255 / (NumColors - 1))));
+  }
+}
+
+function drawPalette() {
+  let currIndex = 0;
+  for (let i = 0; i < NumColors; i++) {
+    if (currentFillColor === PaletteColors[i]) {
+      currIndex = i;
+    }
+    noStroke();
+    fill(PaletteColors[i]);
+    square(StartPaletteX + i * SwatchWidth, StartPaletteY, SwatchWidth);
+  }
+  // show outline for active swatch
+  strokeWeight(4);
+  stroke(255, 200);
+  noFill();
+  square(StartPaletteX + currIndex * SwatchWidth, StartPaletteY, SwatchWidth);
+
+  // cursor
+  if (currentState !== IS_DRAWING && isMouseOverPalette()) {
+    cursor(HAND);
+  } else {
+    cursor(ARROW);
+  }
+}
+
+function isMouseOverPalette() {
+  return (
+    mouseX > StartPaletteX &&
+    mouseY > StartPaletteY &&
+    mouseX < StartPaletteX + SwatchWidth * NumColors &&
+    mouseY < StartPaletteY + SwatchWidth
+  );
 }
 
 function drawPainting() {
@@ -40,17 +98,23 @@ function windowResized() {
   // activeStrokeGfx.resizeCanvas(windowWidth, windowHeight);
 }
 
-let currentFillColor = 255;
-
-/** @type {number[][]} */
-let currentStrokeVertices = [];
-
 function mousePressed() {
-  currentFillColor = random(100, 250);
-  currentStrokeVertices.push([mouseX, mouseY]);
+  if (mouseButton !== LEFT) {
+    return;
+  }
+
+  if (isMouseOverPalette()) {
+    currentState = IS_PICKING_COLOR;
+  } else {
+    currentStrokeVertices.push([mouseX, mouseY]);
+    currentState = IS_DRAWING;
+  }
 }
 
 function mouseDragged() {
+  if (currentState !== IS_DRAWING) {
+    return;
+  }
   activeStrokeGfx.noStroke();
   activeStrokeGfx.fill(currentFillColor);
 
@@ -65,8 +129,22 @@ function mouseDragged() {
 }
 
 function mouseReleased() {
-  currentStrokeVertices = [];
-  persistActiveAndClear();
+  if (mouseButton !== LEFT) {
+    return;
+  }
+
+  if (currentState === IS_PICKING_COLOR) {
+    if (!isMouseOverPalette()) {
+      return;
+    }
+    const colorIndex = Math.floor((NumColors * (mouseX - StartPaletteX)) / (NumColors * SwatchWidth));
+    currentFillColor = PaletteColors[colorIndex];
+  } else if (currentState === IS_DRAWING) {
+    currentStrokeVertices = [];
+    persistActiveAndClear();
+  }
+
+  currentState = IS_HOVERING;
 }
 
 function persistActiveAndClear() {
