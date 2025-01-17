@@ -77,7 +77,7 @@ function drawHelpText() {
   fill(255);
   textSize(16);
   text(
-    "Press 'Esc' to cancel stroke, Press 'R' to reset canvas. No undos.",
+    `Press 1 - ${NumColors}1 for colors.\nPress 'Esc' to cancel stroke, Press 'R' to reset canvas.\nNo undos. Paint over.`,
     StartPaletteX,
     StartPaletteY + SwatchWidth + 20
   );
@@ -173,5 +173,11 @@ function keyPressed() {
 
   if (currentState === IS_HOVERING && key.toUpperCase() === "R") {
     paintingGfx.clear();
+  }
+
+  const keyNumMaybe = parseInt(key);
+  if (currentState !== IS_DRAWING && keyNumMaybe <= NumColors && keyNumMaybe >= 1) {
+    currentFillColor = PaletteColors[keyNumMaybe - 1];
+    1;
   }
 }
