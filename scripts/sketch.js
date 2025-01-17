@@ -46,6 +46,7 @@ function setupPalette() {
   for (let i = 0; i < NumColors; i++) {
     PaletteColors.push(Math.floor(i * (255 / (NumColors - 1))));
   }
+  currentFillColor = PaletteColors[floor(NumColors / 2)];
 }
 
 function drawPalette() {
