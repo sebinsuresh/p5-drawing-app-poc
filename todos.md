@@ -1,4 +1,8 @@
-- extract create machine and types to exportable package
-- separate basic example into own example script
-- create line drawing example
-    - add p5js/q5js
+For MVP:
+
+- touch / stylus input
+  - no pressure sensitivity
+- save image feature
+    - only painting - no palette / debug text
+- (Maybe) "brush" tool: for smaller marks
+    - will require refactor of input, state handling
