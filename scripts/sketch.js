@@ -5,7 +5,7 @@
 /** @type {import("p5").Graphics}*/
 let paintingGfx;
 /** @type {import("p5").Graphics}*/
-let activeDrawGfx;
+let activeStrokeGfx;
 
 const LINE_SEP = 32;
 const HALF_LINE_SEP = LINE_SEP / 2;
@@ -13,7 +13,7 @@ const HALF_LINE_SEP = LINE_SEP / 2;
 function setup() {
   createCanvas(windowWidth, windowHeight);
   paintingGfx = createGraphics(width, height);
-  activeDrawGfx = createGraphics(width, height);
+  activeStrokeGfx = createGraphics(width, height);
 }
 
 function draw() {
@@ -27,7 +27,7 @@ function drawPainting() {
 }
 
 function drawActive() {
-  image(activeDrawGfx, 0, 0);
+  image(activeStrokeGfx, 0, 0);
 }
 
 function clearCanvas() {
@@ -37,12 +37,19 @@ function clearCanvas() {
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
   paintingGfx.resizeCanvas(windowWidth, windowHeight);
-  activeDrawGfx.resizeCanvas(windowWidth, windowHeight);
+  activeStrokeGfx.resizeCanvas(windowWidth, windowHeight);
+}
+
+let currentFillColor = 255;
+
+function mousePressed() {
+  currentFillColor = random(100, 250);
 }
 
 function mouseDragged() {
-  activeDrawGfx.noStroke();
-  activeDrawGfx.rect(
+  activeStrokeGfx.noStroke();
+  activeStrokeGfx.fill(currentFillColor);
+  activeStrokeGfx.rect(
     min(pmouseX, mouseX),
     min(pmouseY, mouseY),
     abs(pmouseX - mouseX),
@@ -55,8 +62,8 @@ function mouseReleased() {
 }
 
 function persistActiveAndClear() {
-  paintingGfx.image(activeDrawGfx, 0, 0);
-  activeDrawGfx.clear();
+  paintingGfx.image(activeStrokeGfx, 0, 0);
+  activeStrokeGfx.clear();
 }
 
 function keyPressed() {}
