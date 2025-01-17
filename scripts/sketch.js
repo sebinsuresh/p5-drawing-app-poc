@@ -77,7 +77,9 @@ function drawHelpText() {
   fill(255);
   textSize(16);
   text(
-    `Press 1 - ${NumColors} for colors.\nPress 'Esc' to cancel stroke, Press 'R' to reset canvas.\nNo undos. Paint over.`,
+    `Press 1 - ${NumColors} for colors.
+Press 'Esc' to cancel stroke, Press 'R' to reset canvas.
+'Ctrl + Z' to undo - ONLY ONCE.`,
     StartPaletteX,
     StartPaletteY + SwatchWidth + 20
   );
@@ -118,6 +120,8 @@ function mousePressed() {
   if (isMouseOverPalette()) {
     currentState = IS_PICKING_COLOR;
   } else {
+    currentStrokeVertices = [];
+    persistActiveAndClear();
     currentStrokeVertices.push([mouseX, mouseY]);
     currentState = IS_DRAWING;
   }
@@ -152,8 +156,7 @@ function mouseReleased() {
     const colorIndex = Math.floor((NumColors * (mouseX - StartPaletteX)) / (NumColors * SwatchWidth));
     currentFillColor = PaletteColors[colorIndex];
   } else if (currentState === IS_DRAWING) {
-    currentStrokeVertices = [];
-    persistActiveAndClear();
+    // do nothing - allow undoing one stroke
   }
 
   currentState = IS_HOVERING;
@@ -169,10 +172,19 @@ function keyPressed() {
     currentState = IS_HOVERING;
     currentStrokeVertices = [];
     activeStrokeGfx.clear();
+    return;
   }
 
   if (currentState === IS_HOVERING && key.toUpperCase() === "R") {
     paintingGfx.clear();
+    activeStrokeGfx.clear();
+    return;
+  }
+
+  if (currentState === IS_HOVERING && key.toUpperCase() === "Z" && keyIsDown(CONTROL)) {
+    // "UNDO":
+    activeStrokeGfx.clear();
+    return;
   }
 
   const keyNumMaybe = parseInt(key);
