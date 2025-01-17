@@ -77,7 +77,7 @@ function drawHelpText() {
   fill(255);
   textSize(16);
   text(
-    `Press 1 - ${NumColors}1 for colors.\nPress 'Esc' to cancel stroke, Press 'R' to reset canvas.\nNo undos. Paint over.`,
+    `Press 1 - ${NumColors} for colors.\nPress 'Esc' to cancel stroke, Press 'R' to reset canvas.\nNo undos. Paint over.`,
     StartPaletteX,
     StartPaletteY + SwatchWidth + 20
   );
