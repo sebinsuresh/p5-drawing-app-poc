@@ -1,6 +1,6 @@
 ## About
 
-POC for drawing app in p5js
+POC for drawing app in p5js. Inspired by some tool in [HEAVYPAINT](https://www.heavypaint.com/)
 
 ## Running
 
