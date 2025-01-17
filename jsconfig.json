@@ -1,0 +1,19 @@
+{
+  "include": [
+    "*.js",
+    "**/*.js",
+    "global.d.ts",
+  ],
+  "compilerOptions": {
+    "checkJs": true,
+    "strict": true,
+    // "strictNullChecks": false,
+    "lib": [
+      "DOM",
+      "ESNext"
+    ]
+  },
+  "exclude": [
+    "node_modules",
+  ]
+}

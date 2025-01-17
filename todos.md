@@ -1,0 +1,4 @@
+- extract create machine and types to exportable package
+- separate basic example into own example script
+- create line drawing example
+    - add p5js/q5js
