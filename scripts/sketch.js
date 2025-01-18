@@ -90,7 +90,8 @@ function drawHelpText() {
   text(
     `Press 1 - ${NumColors} for colors.
 Press 'Esc' to cancel stroke, Press 'R' to reset canvas.
-'Ctrl + Z' to undo - ONLY ONCE.`,
+'Ctrl + Z' to undo - ONLY ONCE.
+enable iOS Safari 120hz: Settings > Apps > Safari > Advanced > Feature flags > Turn off "prefer page rendering updates near 60fps"`,
     StartPaletteX,
     StartPaletteY + swatchWidth + 20
   );
