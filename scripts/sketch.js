@@ -21,8 +21,8 @@ let currentState = IS_HOVERING;
 // Palette
 const StartPaletteX = 10;
 const StartPaletteY = 10;
-const SwatchWidth = 40;
-const NumColors = 8;
+const NumColors = 10;
+let swatchWidth = 40;
 /** @type {number[]} */
 const PaletteColors = [];
 
@@ -40,9 +40,19 @@ function draw() {
   drawActive();
   drawPalette();
   drawHelpText();
+
+  // prevent iOS Safari touch and hold issues
+  const touchHandler = (/** @type {Event} */ ev) => {
+    ev.preventDefault(); // Prevent text selection
+  };
+  document.addEventListener("touchstart", touchHandler, { passive: false });
+  document.addEventListener("touchmove", touchHandler, { passive: false });
+  document.addEventListener("touchend", touchHandler, { passive: false });
+  document.addEventListener("touchcancel", touchHandler, { passive: false });
 }
 
 function setupPalette() {
+  swatchWidth = min(swatchWidth, Math.floor((width + 8) / NumColors));
   for (let i = 0; i < NumColors; i++) {
     PaletteColors.push(Math.floor(i * (255 / (NumColors - 1))));
   }
@@ -57,16 +67,16 @@ function drawPalette() {
     }
     noStroke();
     fill(PaletteColors[i]);
-    square(StartPaletteX + i * SwatchWidth, StartPaletteY, SwatchWidth);
+    square(StartPaletteX + i * swatchWidth, StartPaletteY, swatchWidth);
   }
   // show outline for active swatch
   strokeWeight(4);
   stroke(255, 200);
   noFill();
-  square(StartPaletteX + currIndex * SwatchWidth, StartPaletteY, SwatchWidth);
+  square(StartPaletteX + currIndex * swatchWidth, StartPaletteY, swatchWidth);
 
   // cursor
-  if (currentState !== IS_DRAWING && isMouseOverPalette()) {
+  if (currentState !== IS_DRAWING && isInputOverPalette(mouseX, mouseY)) {
     cursor(HAND);
   } else {
     cursor(ARROW);
@@ -82,16 +92,20 @@ function drawHelpText() {
 Press 'Esc' to cancel stroke, Press 'R' to reset canvas.
 'Ctrl + Z' to undo - ONLY ONCE.`,
     StartPaletteX,
-    StartPaletteY + SwatchWidth + 20
+    StartPaletteY + swatchWidth + 20
   );
 }
 
-function isMouseOverPalette() {
+/**
+ * @param {number} x
+ * @param {number} y
+ */
+function isInputOverPalette(x, y) {
   return (
-    mouseX > StartPaletteX &&
-    mouseY > StartPaletteY &&
-    mouseX < StartPaletteX + SwatchWidth * NumColors &&
-    mouseY < StartPaletteY + SwatchWidth
+    x > StartPaletteX &&
+    y > StartPaletteY &&
+    x < StartPaletteX + swatchWidth * NumColors &&
+    y < StartPaletteY + swatchWidth
   );
 }
 
@@ -113,12 +127,62 @@ function windowResized() {
   // activeStrokeGfx.resizeCanvas(windowWidth, windowHeight);
 }
 
+function touchStarted() {
+  if (touches.length !== 1) {
+    return;
+  }
+
+  if (isInputOverPalette(mouseX, mouseY)) {
+    currentState = IS_PICKING_COLOR;
+  } else {
+    currentStrokeVertices = [];
+    persistActiveAndClear();
+    currentStrokeVertices.push([mouseX, mouseY]);
+    currentState = IS_DRAWING;
+  }
+}
+
+function touchMoved() {
+  if (touches.length !== 1) {
+    return;
+  }
+
+  if (currentState !== IS_DRAWING) {
+    return;
+  }
+  activeStrokeGfx.noStroke();
+  activeStrokeGfx.fill(currentFillColor);
+
+  currentStrokeVertices.push([mouseX, mouseY]);
+
+  activeStrokeGfx.clear();
+  activeStrokeGfx.beginShape();
+  for (let vtx of currentStrokeVertices) {
+    activeStrokeGfx.vertex(vtx[0], vtx[1]);
+  }
+  activeStrokeGfx.endShape();
+}
+
+function touchEnded() {
+  if (currentState === IS_PICKING_COLOR) {
+    if (!isInputOverPalette(mouseX, mouseY)) {
+      return;
+    }
+    const colorIndex = Math.floor((NumColors * (mouseX - StartPaletteX)) / (NumColors * swatchWidth));
+    currentFillColor = PaletteColors[colorIndex];
+  } else if (currentState === IS_DRAWING) {
+    // do nothing - allow undoing one stroke
+  }
+
+  currentState = IS_HOVERING;
+}
+
 function mousePressed() {
   if (mouseButton !== LEFT) {
     return;
   }
 
-  if (isMouseOverPalette()) {
+  if (isInputOverPalette(mouseX, mouseY)) {
     currentState = IS_PICKING_COLOR;
   } else {
     currentStrokeVertices = [];
@@ -151,10 +215,10 @@ function mouseReleased() {
   }
 
   if (currentState === IS_PICKING_COLOR) {
-    if (!isMouseOverPalette()) {
+    if (!isInputOverPalette(mouseX, mouseY)) {
       return;
     }
-    const colorIndex = Math.floor((NumColors * (mouseX - StartPaletteX)) / (NumColors * SwatchWidth));
+    const colorIndex = Math.floor((NumColors * (mouseX - StartPaletteX)) / (NumColors * swatchWidth));
     currentFillColor = PaletteColors[colorIndex];
   } else if (currentState === IS_DRAWING) {
     // do nothing - allow undoing one stroke
