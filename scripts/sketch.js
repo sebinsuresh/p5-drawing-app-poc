@@ -28,8 +28,11 @@ const PaletteColors = [];
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  pixelDensity(2);
   paintingGfx = createGraphics(width, height);
+  paintingGfx.pixelDensity(2);
   activeStrokeGfx = createGraphics(width, height);
+  activeStrokeGfx.pixelDensity(2);
 
   setupPalette();
 }
