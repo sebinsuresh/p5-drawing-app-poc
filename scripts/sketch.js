@@ -26,23 +26,39 @@ let swatchWidth = 40;
 /** @type {number[]} */
 const PaletteColors = [];
 
+/** @type {{img: p5.Image, boundingBox: number[]}[]} */
+const undoStates = [];
+const MaxUndos = 10;
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
   pixelDensity(2);
+
   paintingGfx = createGraphics(width, height);
   paintingGfx.pixelDensity(2);
+  paintingGfx.background(0);
+
   activeStrokeGfx = createGraphics(width, height);
   activeStrokeGfx.pixelDensity(2);
 
   setupPalette();
 }
 
+// /** @type {p5.Image} */
+// let testImg;
 function draw() {
   clearCanvas();
   drawPainting();
   drawActive();
   drawPalette();
   drawHelpText();
+
+  // if (frameCount > 400) {
+  //   if (!testImg) {
+  //     testImg = paintingGfx.get(100, 100, 200, 200);
+  //   }
+  //   image(testImg, 400, 400);
+  // }
 
   // prevent iOS Safari touch and hold issues
   const touchHandler = (/** @type {Event} */ ev) => {
@@ -93,7 +109,7 @@ function drawHelpText() {
   text(
     `Press 1 - ${NumColors} for colors.
 Press 'Esc' to cancel stroke, Press 'R' to reset canvas.
-'Ctrl + Z' to undo - ONLY ONCE.
+'Ctrl + Z' to undo - (${undoStates.length}) remaining.
 enable iOS Safari 120hz: Settings > Apps > Safari > Advanced > Feature flags > Turn off "prefer page rendering updates near 60fps"`,
     StartPaletteX,
     StartPaletteY + swatchWidth + 20
@@ -125,6 +141,31 @@ function clearCanvas() {
   background(0);
 }
 
+/**
+ * @param {number[][]} points
+ * @returns {number[]} The [minX, minY, maxX, maxY] values
+ */
+function getBoundingBox(points) {
+  const boundingBox = [width, height, 0, 0];
+  for (let i = 0; i < points.length; i++) {
+    let currentPoint = points[i];
+    if (currentPoint[0] < boundingBox[0]) {
+      boundingBox[0] = currentPoint[0];
+    }
+    if (currentPoint[0] > boundingBox[2]) {
+      boundingBox[2] = currentPoint[0];
+    }
+
+    if (currentPoint[1] < boundingBox[1]) {
+      boundingBox[1] = currentPoint[1];
+    }
+    if (currentPoint[1] > boundingBox[3]) {
+      boundingBox[3] = currentPoint[1];
+    }
+  }
+  return boundingBox;
+}
+
 function windowResized() {
   // resizeCanvas(windowWidth, windowHeight);
   // paintingGfx.resizeCanvas(windowWidth, windowHeight);
@@ -139,8 +180,6 @@ function touchStarted() {
   if (isInputOverPalette(mouseX, mouseY)) {
     currentState = IS_PICKING_COLOR;
   } else {
-    currentStrokeVertices = [];
-    persistActiveAndClear();
     currentStrokeVertices.push([mouseX, mouseY]);
     currentState = IS_DRAWING;
   }
@@ -175,7 +214,9 @@ function touchEnded() {
     const colorIndex = Math.floor((NumColors * (mouseX - StartPaletteX)) / (NumColors * swatchWidth));
     currentFillColor = PaletteColors[colorIndex];
   } else if (currentState === IS_DRAWING) {
-    // do nothing - allow undoing one stroke
+    pushUndoState();
+    currentStrokeVertices = [];
+    persistActiveAndClear();
   }
 
   currentState = IS_HOVERING;
@@ -225,10 +266,38 @@ function mouseReleased() {
     const colorIndex = Math.floor((NumColors * (mouseX - StartPaletteX)) / (NumColors * swatchWidth));
     currentFillColor = PaletteColors[colorIndex];
   } else if (currentState === IS_DRAWING) {
-    // do nothing - allow undoing one stroke
+    pushUndoState();
+    currentStrokeVertices = [];
+    persistActiveAndClear();
   }
 
   currentState = IS_HOVERING;
+}
+
+function pushUndoState() {
+  if (currentStrokeVertices.length > 1) {
+    const bb = getBoundingBox(currentStrokeVertices);
+
+    // Fix issue when minX=maxX or minY=maxY, causing drawImage error for width/height=0
+    let w = bb[2] - bb[0];
+    if (w === 0) {
+      bb[0] -= 1;
+      bb[2] += 1;
+      w = bb[2] - bb[0];
+    }
+    let h = bb[3] - bb[1];
+    if (h === 0) {
+      bb[1] -= 1;
+      bb[3] += 1;
+      h = bb[3] - bb[1];
+    }
+
+    const undoSnippet = paintingGfx.get(bb[0], bb[1], w, h);
+    const numUndoStates = undoStates.push({ img: undoSnippet, boundingBox: bb });
+    if (numUndoStates > MaxUndos) {
+      undoStates.splice(0, 1);
+    }
+  }
 }
 
 function persistActiveAndClear() {
@@ -245,14 +314,18 @@ function keyPressed() {
   }
 
   if (currentState === IS_HOVERING && key.toUpperCase() === "R") {
-    paintingGfx.clear();
+    paintingGfx.background(0);
     activeStrokeGfx.clear();
     return;
   }
 
+  // Ctrl + Z
   if (currentState === IS_HOVERING && key.toUpperCase() === "Z" && keyIsDown(CONTROL)) {
-    // "UNDO":
-    activeStrokeGfx.clear();
+    const lastUndoState = undoStates.pop();
+    if (!lastUndoState) return; // will return if array empty
+
+    const bb = lastUndoState.boundingBox;
+    paintingGfx.image(lastUndoState.img, bb[0], bb[1], bb[2] - bb[0], bb[3] - bb[1]);
     return;
   }
 
