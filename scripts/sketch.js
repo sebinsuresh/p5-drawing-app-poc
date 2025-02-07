@@ -1,5 +1,5 @@
-/** @param {p5} p */
-const sketch = (p) => {
+/** @param {p5} sketch The p5 sketch */
+const sketchFunction = (sketch) => {
   /** @type {p5.Graphics}*/
   let paintingGfx;
   /** @type {p5.Graphics}*/
@@ -28,21 +28,21 @@ const sketch = (p) => {
   const undoStates = [];
   const MaxUndos = 10;
 
-  p.setup = () => {
-    p.createCanvas(p.windowWidth, p.windowHeight);
-    p.pixelDensity(2);
+  sketch.setup = () => {
+    sketch.createCanvas(sketch.windowWidth, sketch.windowHeight);
+    sketch.pixelDensity(2);
 
-    paintingGfx = p.createGraphics(p.width, p.height);
+    paintingGfx = sketch.createGraphics(sketch.width, sketch.height);
     paintingGfx.pixelDensity(2);
     paintingGfx.background(0);
 
-    activeStrokeGfx = p.createGraphics(p.width, p.height);
+    activeStrokeGfx = sketch.createGraphics(sketch.width, sketch.height);
     activeStrokeGfx.pixelDensity(2);
 
     setupPalette();
   };
 
-  p.draw = () => {
+  sketch.draw = () => {
     clearCanvas();
     drawPainting();
     drawActive();
@@ -59,27 +59,21 @@ const sketch = (p) => {
     document.addEventListener("touchcancel", touchHandler, { passive: false });
   };
 
-  p.windowResized = () => {
-    // resizeCanvas(windowWidth, windowHeight);
-    // paintingGfx.resizeCanvas(windowWidth, windowHeight);
-    // activeStrokeGfx.resizeCanvas(windowWidth, windowHeight);
-  };
-
-  p.touchStarted = () => {
-    if (p.touches.length !== 1) {
+  sketch.touchStarted = () => {
+    if (sketch.touches.length !== 1) {
       return;
     }
 
-    if (isInputOverPalette(p.mouseX, p.mouseY)) {
+    if (isInputOverPalette(sketch.mouseX, sketch.mouseY)) {
       currentState = IS_PICKING_COLOR;
     } else {
-      currentStrokeVertices.push([p.mouseX, p.mouseY]);
+      currentStrokeVertices.push([sketch.mouseX, sketch.mouseY]);
       currentState = IS_DRAWING;
     }
   };
 
-  p.touchMoved = () => {
-    if (p.touches.length !== 1) {
+  sketch.touchMoved = () => {
+    if (sketch.touches.length !== 1) {
       return;
     }
 
@@ -89,7 +83,7 @@ const sketch = (p) => {
     activeStrokeGfx.noStroke();
     activeStrokeGfx.fill(currentFillColor);
 
-    currentStrokeVertices.push([p.mouseX, p.mouseY]);
+    currentStrokeVertices.push([sketch.mouseX, sketch.mouseY]);
 
     activeStrokeGfx.clear();
     activeStrokeGfx.beginShape();
@@ -99,12 +93,14 @@ const sketch = (p) => {
     activeStrokeGfx.endShape();
   };
 
-  p.touchEnded = () => {
+  sketch.touchEnded = () => {
     if (currentState === IS_PICKING_COLOR) {
-      if (!isInputOverPalette(p.mouseX, p.mouseY)) {
+      if (!isInputOverPalette(sketch.mouseX, sketch.mouseY)) {
         return;
       }
-      const colorIndex = Math.floor((NumColors * (p.mouseX - StartPaletteX)) / (NumColors * swatchWidth));
+      const colorIndex = Math.floor(
+        (NumColors * (sketch.mouseX - StartPaletteX)) / (NumColors * swatchWidth)
+      );
       currentFillColor = PaletteColors[colorIndex];
     } else if (currentState === IS_DRAWING) {
       pushUndoState();
@@ -115,29 +111,29 @@ const sketch = (p) => {
     currentState = IS_HOVERING;
   };
 
-  p.mousePressed = () => {
-    if (p.mouseButton !== p.LEFT) {
+  sketch.mousePressed = () => {
+    if (sketch.mouseButton !== sketch.LEFT) {
       return;
     }
 
-    if (isInputOverPalette(p.mouseX, p.mouseY)) {
+    if (isInputOverPalette(sketch.mouseX, sketch.mouseY)) {
       currentState = IS_PICKING_COLOR;
     } else {
       currentStrokeVertices = [];
       persistActiveAndClear();
-      currentStrokeVertices.push([p.mouseX, p.mouseY]);
+      currentStrokeVertices.push([sketch.mouseX, sketch.mouseY]);
       currentState = IS_DRAWING;
     }
   };
 
-  p.mouseDragged = () => {
+  sketch.mouseDragged = () => {
     if (currentState !== IS_DRAWING) {
       return;
     }
     activeStrokeGfx.noStroke();
     activeStrokeGfx.fill(currentFillColor);
 
-    currentStrokeVertices.push([p.mouseX, p.mouseY]);
+    currentStrokeVertices.push([sketch.mouseX, sketch.mouseY]);
 
     activeStrokeGfx.clear();
     activeStrokeGfx.beginShape();
@@ -147,16 +143,18 @@ const sketch = (p) => {
     activeStrokeGfx.endShape();
   };
 
-  p.mouseReleased = () => {
-    if (p.mouseButton !== p.LEFT) {
+  sketch.mouseReleased = () => {
+    if (sketch.mouseButton !== sketch.LEFT) {
       return;
     }
 
     if (currentState === IS_PICKING_COLOR) {
-      if (!isInputOverPalette(p.mouseX, p.mouseY)) {
+      if (!isInputOverPalette(sketch.mouseX, sketch.mouseY)) {
         return;
       }
-      const colorIndex = Math.floor((NumColors * (p.mouseX - StartPaletteX)) / (NumColors * swatchWidth));
+      const colorIndex = Math.floor(
+        (NumColors * (sketch.mouseX - StartPaletteX)) / (NumColors * swatchWidth)
+      );
       currentFillColor = PaletteColors[colorIndex];
     } else if (currentState === IS_DRAWING) {
       pushUndoState();
@@ -167,22 +165,26 @@ const sketch = (p) => {
     currentState = IS_HOVERING;
   };
 
-  p.keyPressed = () => {
-    if (currentState === IS_DRAWING && p.keyCode === p.ESCAPE) {
+  sketch.keyPressed = () => {
+    if (currentState === IS_DRAWING && sketch.keyCode === sketch.ESCAPE) {
       currentState = IS_HOVERING;
       currentStrokeVertices = [];
       activeStrokeGfx.clear();
       return;
     }
 
-    if (currentState === IS_HOVERING && p.key.toUpperCase() === "R") {
+    if (currentState === IS_HOVERING && sketch.key.toUpperCase() === "R") {
       paintingGfx.background(0);
       activeStrokeGfx.clear();
       return;
     }
 
     // Ctrl + Z
-    if (currentState === IS_HOVERING && p.key.toUpperCase() === "Z" && p.keyIsDown(p.CONTROL)) {
+    if (
+      currentState === IS_HOVERING &&
+      sketch.key.toUpperCase() === "Z" &&
+      sketch.keyIsDown(sketch.CONTROL)
+    ) {
       const lastUndoState = undoStates.pop();
       if (!lastUndoState) return; // will return if array empty
 
@@ -191,7 +193,7 @@ const sketch = (p) => {
       return;
     }
 
-    const keyNumMaybe = parseInt(p.key);
+    const keyNumMaybe = parseInt(sketch.key);
     if (currentState !== IS_DRAWING && keyNumMaybe <= NumColors && keyNumMaybe >= 1) {
       currentFillColor = PaletteColors[keyNumMaybe - 1];
       1;
@@ -199,11 +201,11 @@ const sketch = (p) => {
   };
 
   function setupPalette() {
-    swatchWidth = p.min(swatchWidth, Math.floor((p.width + 8) / NumColors));
+    swatchWidth = sketch.min(swatchWidth, Math.floor((sketch.width + 8) / NumColors));
     for (let i = 0; i < NumColors; i++) {
       PaletteColors.push(Math.floor(i * (255 / (NumColors - 1))));
     }
-    currentFillColor = PaletteColors[p.floor(NumColors / 2)];
+    currentFillColor = PaletteColors[sketch.floor(NumColors / 2)];
   }
 
   function drawPalette() {
@@ -212,29 +214,29 @@ const sketch = (p) => {
       if (currentFillColor === PaletteColors[i]) {
         currIndex = i;
       }
-      p.noStroke();
-      p.fill(PaletteColors[i]);
-      p.square(StartPaletteX + i * swatchWidth, StartPaletteY, swatchWidth);
+      sketch.noStroke();
+      sketch.fill(PaletteColors[i]);
+      sketch.square(StartPaletteX + i * swatchWidth, StartPaletteY, swatchWidth);
     }
     // show outline for active swatch
-    p.strokeWeight(4);
-    p.stroke(255, 200);
-    p.noFill();
-    p.square(StartPaletteX + currIndex * swatchWidth, StartPaletteY, swatchWidth);
+    sketch.strokeWeight(4);
+    sketch.stroke(255, 200);
+    sketch.noFill();
+    sketch.square(StartPaletteX + currIndex * swatchWidth, StartPaletteY, swatchWidth);
 
     // cursor
-    if (currentState !== IS_DRAWING && isInputOverPalette(p.mouseX, p.mouseY)) {
-      p.cursor(p.HAND);
+    if (currentState !== IS_DRAWING && isInputOverPalette(sketch.mouseX, sketch.mouseY)) {
+      sketch.cursor(sketch.HAND);
     } else {
-      p.cursor(p.ARROW);
+      sketch.cursor(sketch.ARROW);
     }
   }
 
   function drawHelpText() {
-    p.stroke(0);
-    p.fill(255);
-    p.textSize(16);
-    p.text(
+    sketch.stroke(0);
+    sketch.fill(255);
+    sketch.textSize(16);
+    sketch.text(
       `Press 1 - ${NumColors} for colors.
 Press 'Esc' to cancel stroke, Press 'R' to reset canvas.
 'Ctrl + Z' to undo - (${undoStates.length}) remaining.
@@ -258,15 +260,15 @@ enable iOS Safari 120hz: Settings > Apps > Safari > Advanced > Feature flags > T
   }
 
   function drawPainting() {
-    p.image(paintingGfx, 0, 0);
+    sketch.image(paintingGfx, 0, 0);
   }
 
   function drawActive() {
-    p.image(activeStrokeGfx, 0, 0);
+    sketch.image(activeStrokeGfx, 0, 0);
   }
 
   function clearCanvas() {
-    p.background(0);
+    sketch.background(0);
   }
 
   /**
@@ -274,7 +276,7 @@ enable iOS Safari 120hz: Settings > Apps > Safari > Advanced > Feature flags > T
    * @returns {number[]} The [minX, minY, maxX, maxY] values
    */
   function getBoundingBox(points) {
-    const boundingBox = [p.width, p.height, 0, 0];
+    const boundingBox = [sketch.width, sketch.height, 0, 0];
     for (let i = 0; i < points.length; i++) {
       let currentPoint = points[i];
       if (currentPoint[0] < boundingBox[0]) {
@@ -327,4 +329,4 @@ enable iOS Safari 120hz: Settings > Apps > Safari > Advanced > Feature flags > T
 };
 
 // @ts-ignore: to ignore ts(2686) import error
-new p5(sketch);
+new p5(sketchFunction);
