@@ -1,5 +1,4 @@
 import { UndoManager } from "./managers/undoManager.js";
-import { getBoundingBox, getImageSnippetFromBoundingBox } from "./utils/boundingBox.js";
 
 /** @param {p5} sketch The p5 sketch */
 const sketchFunction = (sketch) => {
@@ -27,9 +26,8 @@ const sketchFunction = (sketch) => {
   /** @type {number[]} */
   const PaletteColors = [];
 
-  /** @type {{img: p5.Image, boundingBox: number[]}[]} */
-  const undoStates = [];
-  const MaxUndos = 10;
+  /** @type {UndoManager} */
+  let undoMgr;
 
   sketch.setup = () => {
     sketch.createCanvas(sketch.windowWidth, sketch.windowHeight);
@@ -41,6 +39,8 @@ const sketchFunction = (sketch) => {
 
     activeStrokeGfx = sketch.createGraphics(sketch.width, sketch.height);
     activeStrokeGfx.pixelDensity(2);
+
+    undoMgr = new UndoManager(paintingGfx);
 
     setupPalette();
   };
@@ -106,7 +106,7 @@ const sketchFunction = (sketch) => {
       );
       currentFillColor = PaletteColors[colorIndex];
     } else if (currentState === IS_DRAWING) {
-      pushUndoState();
+      undoMgr.pushState(currentStrokeVertices);
       currentStrokeVertices = [];
       persistActiveAndClear();
     }
@@ -160,7 +160,7 @@ const sketchFunction = (sketch) => {
       );
       currentFillColor = PaletteColors[colorIndex];
     } else if (currentState === IS_DRAWING) {
-      pushUndoState();
+      undoMgr.pushState(currentStrokeVertices);
       currentStrokeVertices = [];
       persistActiveAndClear();
     }
@@ -188,11 +188,7 @@ const sketchFunction = (sketch) => {
       sketch.key.toUpperCase() === "Z" &&
       sketch.keyIsDown(sketch.CONTROL)
     ) {
-      const lastUndoState = undoStates.pop();
-      if (!lastUndoState) return; // will return if array empty
-
-      const bb = lastUndoState.boundingBox;
-      paintingGfx.image(lastUndoState.img, bb[0], bb[1], bb[2] - bb[0], bb[3] - bb[1]);
+      undoMgr.undo();
       return;
     }
 
@@ -242,7 +238,7 @@ const sketchFunction = (sketch) => {
     sketch.text(
       `Press 1 - ${NumColors} for colors.
 Press 'Esc' to cancel stroke, Press 'R' to reset canvas.
-'Ctrl + Z' to undo - (${undoStates.length}) remaining.
+'Ctrl + Z' to undo - (${undoMgr.getUndoCountLeft()}) remaining.
 enable iOS Safari 120hz: Settings > Apps > Safari > Advanced > Feature flags > Turn off "prefer page rendering updates near 60fps"`,
       StartPaletteX,
       StartPaletteY + swatchWidth + 20
@@ -272,18 +268,6 @@ enable iOS Safari 120hz: Settings > Apps > Safari > Advanced > Feature flags > T
 
   function clearCanvas() {
     sketch.background(0);
-  }
-
-  function pushUndoState() {
-    if (currentStrokeVertices.length > 1) {
-      const bb = getBoundingBox(currentStrokeVertices, sketch.width, sketch.height);
-      const undoSnippet = getImageSnippetFromBoundingBox(bb, paintingGfx);
-
-      const numUndoStates = undoStates.push({ img: undoSnippet, boundingBox: bb });
-      if (numUndoStates > MaxUndos) {
-        undoStates.splice(0, 1);
-      }
-    }
   }
 
   function persistActiveAndClear() {
