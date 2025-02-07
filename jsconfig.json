@@ -11,7 +11,8 @@
     "lib": [
       "DOM",
       "ESNext"
-    ]
+    ],
+    "module": "NodeNext"
   },
   "exclude": [
     "node_modules",
