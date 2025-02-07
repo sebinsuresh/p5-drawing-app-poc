@@ -53,13 +53,10 @@ const sketchFunction = (sketch) => {
     drawHelpText();
 
     // prevent iOS Safari touch and hold issues
-    const touchHandler = (/** @type {Event} */ ev) => {
-      ev.preventDefault(); // Prevent text selection
-    };
-    document.addEventListener("touchstart", touchHandler, { passive: false });
-    document.addEventListener("touchmove", touchHandler, { passive: false });
-    document.addEventListener("touchend", touchHandler, { passive: false });
-    document.addEventListener("touchcancel", touchHandler, { passive: false });
+    document.addEventListener("touchstart", (ev) => ev.preventDefault(), { passive: false });
+    document.addEventListener("touchmove", (ev) => ev.preventDefault(), { passive: false });
+    document.addEventListener("touchend", (ev) => ev.preventDefault(), { passive: false });
+    document.addEventListener("touchcancel", (ev) => ev.preventDefault(), { passive: false });
   };
 
   sketch.touchStarted = () => {
@@ -177,6 +174,10 @@ const sketchFunction = (sketch) => {
     }
 
     if (currentState === IS_HOVERING && sketch.key.toUpperCase() === "R") {
+      undoMgr.pushState([
+        [0, 0],
+        [paintingGfx.width, paintingGfx.height],
+      ]);
       paintingGfx.background(0);
       activeStrokeGfx.clear();
       return;
