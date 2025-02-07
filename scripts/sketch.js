@@ -1,3 +1,6 @@
+import { UndoManager } from "./managers/undoManager.js";
+import { getBoundingBox, getImageSnippetFromBoundingBox } from "./utils/boundingBox.js";
+
 /** @param {p5} sketch The p5 sketch */
 const sketchFunction = (sketch) => {
   /** @type {p5.Graphics}*/
@@ -271,50 +274,11 @@ enable iOS Safari 120hz: Settings > Apps > Safari > Advanced > Feature flags > T
     sketch.background(0);
   }
 
-  /**
-   * @param {number[][]} points
-   * @returns {number[]} The [minX, minY, maxX, maxY] values
-   */
-  function getBoundingBox(points) {
-    const boundingBox = [sketch.width, sketch.height, 0, 0];
-    for (let i = 0; i < points.length; i++) {
-      let currentPoint = points[i];
-      if (currentPoint[0] < boundingBox[0]) {
-        boundingBox[0] = currentPoint[0];
-      }
-      if (currentPoint[0] > boundingBox[2]) {
-        boundingBox[2] = currentPoint[0];
-      }
-
-      if (currentPoint[1] < boundingBox[1]) {
-        boundingBox[1] = currentPoint[1];
-      }
-      if (currentPoint[1] > boundingBox[3]) {
-        boundingBox[3] = currentPoint[1];
-      }
-    }
-    return boundingBox;
-  }
-
   function pushUndoState() {
     if (currentStrokeVertices.length > 1) {
-      const bb = getBoundingBox(currentStrokeVertices);
+      const bb = getBoundingBox(currentStrokeVertices, sketch.width, sketch.height);
+      const undoSnippet = getImageSnippetFromBoundingBox(bb, paintingGfx);
 
-      // Fix issue when minX=maxX or minY=maxY, causing drawImage error for width/height=0
-      let w = bb[2] - bb[0];
-      if (w === 0) {
-        bb[0] -= 1;
-        bb[2] += 1;
-        w = bb[2] - bb[0];
-      }
-      let h = bb[3] - bb[1];
-      if (h === 0) {
-        bb[1] -= 1;
-        bb[3] += 1;
-        h = bb[3] - bb[1];
-      }
-
-      const undoSnippet = paintingGfx.get(bb[0], bb[1], w, h);
       const numUndoStates = undoStates.push({ img: undoSnippet, boundingBox: bb });
       if (numUndoStates > MaxUndos) {
         undoStates.splice(0, 1);
