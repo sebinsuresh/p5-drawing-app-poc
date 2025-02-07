@@ -8,5 +8,6 @@
   },
   "cSpell.words": [
     "millis"
-  ]
+  ],
+  "javascript.preferences.importModuleSpecifierEnding": "js"
 }

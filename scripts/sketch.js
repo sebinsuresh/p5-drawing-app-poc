@@ -326,4 +326,5 @@ enable iOS Safari 120hz: Settings > Apps > Safari > Advanced > Feature flags > T
   }
 };
 
+// @ts-ignore: to ignore ts(2686) import error
 new p5(sketch);
