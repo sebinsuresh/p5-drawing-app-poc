@@ -1,0 +1,12 @@
+- Renderer class
+  - higher level abstractons like draw palette, help text, etc.
+   - pass in palette to the method perhaps
+  - 
+- cursor handling
+  - palette sholdnt care about how to change cursor, only what cursor palette hover should produce
+  - palette could provide input over palette checking function
+- diagram
+  - figure out boundaries
+  - interactions
+- todo: figure out boundaries, figure out reponsibilities of the different managers, 
+- 
