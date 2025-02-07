@@ -216,6 +216,12 @@ const sketchFunction = (sketch) => {
       sketch.noStroke();
       sketch.fill(PaletteColors[i]);
       sketch.square(StartPaletteX + i * swatchWidth, StartPaletteY, swatchWidth);
+
+      // Keybinding label
+      sketch.noStroke;
+      sketch.fill(255 - PaletteColors[i]);
+      // TODO: this breaks if NumColors > 10
+      sketch.text(`${(i + 1) % 10}`, StartPaletteX + i * swatchWidth + 10, StartPaletteY + 20);
     }
     // show outline for active swatch
     sketch.strokeWeight(4);
