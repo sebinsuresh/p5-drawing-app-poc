@@ -44,6 +44,8 @@ export class UndoManager {
     }
 
     const bb = getBoundingBox(changedVertices, this._graphics.width, this._graphics.height);
+
+    // TODO: Only get pixels array - this is creating a new canvas & ctx every time
     const undoSnippet = getImageSnippetFromBoundingBox(bb, this._graphics);
 
     const numUndoStates = this._undoStates.push({ img: undoSnippet, boundingBox: bb });
