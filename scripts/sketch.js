@@ -29,8 +29,10 @@ const sketchFunction = (sketch) => {
   /** @type {UndoManager} */
   let undoMgr;
 
+  let pressure = 0;
+
   sketch.setup = () => {
-    sketch.createCanvas(sketch.windowWidth, sketch.windowHeight);
+    const mainCanvas = sketch.createCanvas(sketch.windowWidth, sketch.windowHeight);
     sketch.pixelDensity(2);
 
     paintingGfx = sketch.createGraphics(sketch.width, sketch.height);
@@ -43,6 +45,14 @@ const sketchFunction = (sketch) => {
     undoMgr = new UndoManager(paintingGfx);
 
     setupPalette();
+
+    mainCanvas.elt.addEventListener(
+      "pointermove",
+      (/** @type {PointerEvent} */ evt) => {
+        pressure = evt.pressure;
+      },
+      false
+    );
   };
 
   sketch.draw = () => {
@@ -52,7 +62,9 @@ const sketchFunction = (sketch) => {
     drawPalette();
     drawHelpText();
 
-    // prevent iOS Safari touch and hold issues
+    // - prevents iOS Safari touch and hold issues
+    // - chrome tablet drag left to navigate back gesture
+    // - enables pressure sensitivity detection
     document.addEventListener("touchstart", (ev) => ev.preventDefault(), { passive: false });
     document.addEventListener("touchmove", (ev) => ev.preventDefault(), { passive: false });
     document.addEventListener("touchend", (ev) => ev.preventDefault(), { passive: false });
