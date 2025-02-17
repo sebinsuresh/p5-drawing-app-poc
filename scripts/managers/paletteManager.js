@@ -76,12 +76,14 @@ export class PaletteManager {
     return this.#currentFillColor;
   }
 
+  // TODO: add something like an interface enforcing these methods?
+
   /**
    * @param {number} x
    * @param {number} y
    * @returns {boolean}
    */
-  #isPointInPaletteRegion(x, y) {
+  shouldHandlePositionInput(x, y) {
     return (
       x > this.#startPaletteX &&
       y > this.#startPaletteY &&
@@ -89,9 +91,6 @@ export class PaletteManager {
       y < this.#startPaletteY + this.#swatchWidth
     );
   }
-
-  // TODO: add something like an interface enforcing these methods
-  shouldHandlePositionInput = this.#isPointInPaletteRegion;
 
   /**
    * @param {'hover' | 'select'} type
@@ -101,7 +100,6 @@ export class PaletteManager {
   handlePositionInput(type, x, _y) {
     if (type === "hover") {
       this.#sketch.cursor(this.#sketch.HAND);
-      // TODO: Change it back when leaving
     } else if (type === "select") {
       this.#currentFillColor = this.getColorFromPosition(x);
     }
