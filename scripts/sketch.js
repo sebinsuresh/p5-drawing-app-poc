@@ -166,6 +166,35 @@ const sketchFunction = (sketch) => {
       return;
     }
 
+    // flip horizontal
+    if (currentState === IS_HOVERING && sketch.key.toUpperCase() === "H") {
+      undoMgr.pushState([
+        [0, 0],
+        [paintingGfx.width, paintingGfx.height],
+      ]);
+      paintingGfx.push();
+      paintingGfx.scale(-1, 1);
+      const currentGfx = paintingGfx.get();
+      paintingGfx.clear();
+      paintingGfx.image(currentGfx, -paintingGfx.width, 0, paintingGfx.width, paintingGfx.height);
+      paintingGfx.pop();
+      return;
+    }
+
+    // flip vertical
+    if (currentState === IS_HOVERING && sketch.key.toUpperCase() === "V") {
+      undoMgr.pushState([
+        [0, 0],
+        [paintingGfx.width, paintingGfx.height],
+      ]);
+      paintingGfx.push();
+      paintingGfx.scale(1, -1);
+      const currentGfx = paintingGfx.get();
+      paintingGfx.clear();
+      paintingGfx.image(currentGfx, 0, -paintingGfx.height, paintingGfx.width, paintingGfx.height);
+      paintingGfx.pop();
+    }
+
     // Ctrl + Z
     if (
       currentState === IS_HOVERING &&
