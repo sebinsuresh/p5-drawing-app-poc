@@ -14,6 +14,7 @@ export class PaletteManager {
    */
   constructor(sketch) {
     this.#sketch = sketch;
+    // TODO: exceeds screen width on samsung phone
     this.#swatchWidth = this.#sketch.min(
       this.#swatchWidth,
       Math.floor((this.#sketch.width + 8) / this.#numColors)
