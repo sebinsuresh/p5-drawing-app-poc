@@ -17,6 +17,7 @@ const sketchFunction = (sketch) => {
   const IS_PICKING_COLOR = 2;
 
   let currentState = IS_HOVERING;
+  let cursorIsSet = false;
 
   // Palette
   const StartPaletteX = 10;
@@ -162,6 +163,7 @@ const sketchFunction = (sketch) => {
 
     if (currentState === IS_PICKING_COLOR) {
       if (!isInputOverPalette(sketch.mouseX, sketch.mouseY)) {
+        currentState = IS_HOVERING;
         return;
       }
       const colorIndex = Math.floor(
@@ -208,7 +210,6 @@ const sketchFunction = (sketch) => {
     const keyNumMaybe = parseInt(sketch.key);
     if (currentState !== IS_DRAWING && keyNumMaybe <= NumColors && keyNumMaybe >= 1) {
       currentFillColor = PaletteColors[keyNumMaybe - 1];
-      1;
     }
   };
 
@@ -243,10 +244,12 @@ const sketchFunction = (sketch) => {
     sketch.square(StartPaletteX + currIndex * swatchWidth, StartPaletteY, swatchWidth);
 
     // cursor
-    if (currentState !== IS_DRAWING && isInputOverPalette(sketch.mouseX, sketch.mouseY)) {
+    if (!cursorIsSet && currentState !== IS_DRAWING && isInputOverPalette(sketch.mouseX, sketch.mouseY)) {
       sketch.cursor(sketch.HAND);
-    } else {
+      cursorIsSet = true;
+    } else if (cursorIsSet && !isInputOverPalette(sketch.mouseX, sketch.mouseY)) {
       sketch.cursor(sketch.ARROW);
+      cursorIsSet = false;
     }
   }
 
