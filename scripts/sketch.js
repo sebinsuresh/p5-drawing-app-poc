@@ -46,6 +46,14 @@ const sketchFunction = (sketch) => {
       },
       false
     );
+
+    // - prevents iOS Safari touch and hold issues
+    // - chrome tablet drag left to navigate back gesture
+    // - enables pressure sensitivity detection
+    document.addEventListener("touchstart", (ev) => ev.preventDefault(), { passive: false });
+    document.addEventListener("touchmove", (ev) => ev.preventDefault(), { passive: false });
+    document.addEventListener("touchend", (ev) => ev.preventDefault(), { passive: false });
+    document.addEventListener("touchcancel", (ev) => ev.preventDefault(), { passive: false });
   };
 
   sketch.draw = () => {
@@ -55,14 +63,6 @@ const sketchFunction = (sketch) => {
     paletteMgr.draw();
     drawHelpText();
     updateCursor();
-
-    // - prevents iOS Safari touch and hold issues
-    // - chrome tablet drag left to navigate back gesture
-    // - enables pressure sensitivity detection
-    document.addEventListener("touchstart", (ev) => ev.preventDefault(), { passive: false });
-    document.addEventListener("touchmove", (ev) => ev.preventDefault(), { passive: false });
-    document.addEventListener("touchend", (ev) => ev.preventDefault(), { passive: false });
-    document.addEventListener("touchcancel", (ev) => ev.preventDefault(), { passive: false });
   };
 
   sketch.touchStarted = () => {
