@@ -24,9 +24,10 @@ const sketchFunction = (sketch) => {
   let paletteMgr;
 
   let pressure = 0;
+  let prevPressure = 0;
 
   sketch.setup = () => {
-    const mainCanvas = sketch.createCanvas(sketch.windowWidth, sketch.windowHeight);
+    sketch.createCanvas(sketch.windowWidth, sketch.windowHeight);
     sketch.pixelDensity(2);
 
     paintingGfx = sketch.createGraphics(sketch.width, sketch.height);
@@ -38,21 +39,7 @@ const sketchFunction = (sketch) => {
     undoMgr = new UndoManager(paintingGfx);
     paletteMgr = new PaletteManager(sketch);
 
-    mainCanvas.elt.addEventListener(
-      "pointermove",
-      (/** @type {PointerEvent} */ evt) => {
-        pressure = evt.pressure;
-      },
-      false
-    );
-
-    // - prevents iOS Safari touch and hold issues
-    // - chrome tablet drag left to navigate back gesture
-    // - enables pressure sensitivity detection
-    document.addEventListener("touchstart", (ev) => ev.preventDefault(), { passive: false });
-    document.addEventListener("touchmove", (ev) => ev.preventDefault(), { passive: false });
-    document.addEventListener("touchend", (ev) => ev.preventDefault(), { passive: false });
-    document.addEventListener("touchcancel", (ev) => ev.preventDefault(), { passive: false });
+    addListeners();
   };
 
   sketch.draw = () => {
@@ -197,6 +184,23 @@ const sketchFunction = (sketch) => {
       paletteMgr.handleKeyInput(parseInt(sketch.key));
     }
   };
+
+  function addListeners() {
+    const setPressureFromEvent = (/** @type {PointerEvent} */ ev) => {
+      prevPressure = pressure;
+      pressure = ev.pressure;
+    };
+    sketch.drawingContext.canvas.addEventListener("pointermove", setPressureFromEvent, false);
+
+    // - prevents iOS Safari touch and hold issues
+    // - chrome tablet drag left to navigate back gesture
+    // - enables pressure sensitivity detection
+    const preventDefaultTouch = (/** @type {TouchEvent} */ ev) => ev.preventDefault();
+    document.addEventListener("touchstart", preventDefaultTouch, { passive: false });
+    document.addEventListener("touchmove", preventDefaultTouch, { passive: false });
+    document.addEventListener("touchend", preventDefaultTouch, { passive: false });
+    document.addEventListener("touchcancel", preventDefaultTouch, { passive: false });
+  }
 
   function updateCursor() {
     if (cursorIsSet) {
