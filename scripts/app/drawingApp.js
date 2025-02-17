@@ -1,4 +1,3 @@
-// TODO
 export class DrawingApp {
   /** @param {p5} sketch */
   constructor(sketch) {
@@ -6,4 +5,6 @@ export class DrawingApp {
   }
 
   start() {}
+
+  render() {}
 }
