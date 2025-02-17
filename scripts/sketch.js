@@ -31,7 +31,6 @@ const sketchFunction = (sketch) => {
 
     paintingGfx = sketch.createGraphics(sketch.width, sketch.height);
     paintingGfx.pixelDensity(2);
-    paintingGfx.background(0);
 
     activeStrokeGfx = sketch.createGraphics(sketch.width, sketch.height);
     activeStrokeGfx.pixelDensity(2);
@@ -179,7 +178,7 @@ const sketchFunction = (sketch) => {
         [0, 0],
         [paintingGfx.width, paintingGfx.height],
       ]);
-      paintingGfx.background(0);
+      paintingGfx.clear();
       activeStrokeGfx.clear();
       return;
     }

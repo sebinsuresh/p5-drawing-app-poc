@@ -28,6 +28,7 @@ export class UndoManager {
     if (!lastUndoState) return 0; // will return if array empty
 
     const bb = lastUndoState.boundingBox;
+    this._graphics.drawingContext.clearRect(bb[0], bb[1], bb[2] - bb[0], bb[3] - bb[1]);
     this._graphics.image(lastUndoState.img, bb[0], bb[1], bb[2] - bb[0], bb[3] - bb[1]);
 
     return this._undoStates.length;
