@@ -3,6 +3,8 @@ import { UndoManager } from "./managers/undoManager.js";
 
 /** @param {p5} sketch The p5 sketch */
 const sketchFunction = (sketch) => {
+  //#region variables
+
   /** @type {p5.Graphics}*/
   let paintingGfx;
   /** @type {p5.Graphics}*/
@@ -26,19 +28,11 @@ const sketchFunction = (sketch) => {
   let pressure = 0;
   let prevPressure = 0;
 
+  //#endregion
+
   sketch.setup = () => {
-    sketch.createCanvas(sketch.windowWidth, sketch.windowHeight);
-    sketch.pixelDensity(2);
-
-    paintingGfx = sketch.createGraphics(sketch.width, sketch.height);
-    paintingGfx.pixelDensity(2);
-
-    activeStrokeGfx = sketch.createGraphics(sketch.width, sketch.height);
-    activeStrokeGfx.pixelDensity(2);
-
-    undoMgr = new UndoManager(paintingGfx);
-    paletteMgr = new PaletteManager(sketch);
-
+    setupGraphics();
+    initializeManagers();
     addListeners();
   };
 
@@ -50,6 +44,8 @@ const sketchFunction = (sketch) => {
     drawHelpText();
     updateCursor();
   };
+
+  //#region p5 event handlers
 
   sketch.touchStarted = () => {
     if (sketch.touches.length !== 1) {
@@ -185,6 +181,26 @@ const sketchFunction = (sketch) => {
     }
   };
 
+  //#endregion
+
+  //#region initializer functions
+
+  function setupGraphics() {
+    sketch.createCanvas(sketch.windowWidth, sketch.windowHeight);
+    sketch.pixelDensity(2);
+
+    paintingGfx = sketch.createGraphics(sketch.width, sketch.height);
+    paintingGfx.pixelDensity(2);
+
+    activeStrokeGfx = sketch.createGraphics(sketch.width, sketch.height);
+    activeStrokeGfx.pixelDensity(2);
+  }
+
+  function initializeManagers() {
+    undoMgr = new UndoManager(paintingGfx);
+    paletteMgr = new PaletteManager(sketch);
+  }
+
   function addListeners() {
     const setPressureFromEvent = (/** @type {PointerEvent} */ ev) => {
       prevPressure = pressure;
@@ -201,6 +217,10 @@ const sketchFunction = (sketch) => {
     document.addEventListener("touchend", preventDefaultTouch, { passive: false });
     document.addEventListener("touchcancel", preventDefaultTouch, { passive: false });
   }
+
+  //#endregion
+
+  //#region other functions
 
   function updateCursor() {
     if (cursorIsSet) {
@@ -246,6 +266,8 @@ enable iOS Safari 120hz: Settings > Apps > Safari > Advanced > Feature flags > T
     paintingGfx.image(activeStrokeGfx, 0, 0);
     activeStrokeGfx.clear();
   }
+
+  //#endregion
 };
 
 // @ts-ignore: to ignore ts(2686) import error
