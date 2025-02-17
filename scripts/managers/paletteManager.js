@@ -39,14 +39,15 @@ export class PaletteManager {
       );
 
       // Keybinding label
-      this.#sketch.noStroke;
-      this.#sketch.fill(255 - this.#paletteColors[i]);
-      // TODO: this breaks if NumColors > 10
-      this.#sketch.text(
-        `${(i + 1) % 10}`,
-        this.#startPaletteX + i * this.#swatchWidth + 10,
-        this.#startPaletteY + 20
-      );
+      if (i < 10) {
+        this.#sketch.noStroke;
+        this.#sketch.fill(255 - this.#paletteColors[i]);
+        this.#sketch.text(
+          `${(i + 1) % 10}`,
+          this.#startPaletteX + i * this.#swatchWidth + 10,
+          this.#startPaletteY + 20
+        );
+      }
     }
     // show outline for active swatch
     this.#sketch.strokeWeight(4);
