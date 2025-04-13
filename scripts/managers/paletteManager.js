@@ -99,6 +99,7 @@ export class PaletteManager {
    */
   handlePositionInput(type, x, _y) {
     if (type === "hover") {
+      // TODO: this shouldn't be palette manager's responsibility prob
       this.#sketch.cursor(this.#sketch.HAND);
     } else if (type === "select") {
       this.#currentFillColor = this.getColorFromPosition(x);

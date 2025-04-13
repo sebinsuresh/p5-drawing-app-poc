@@ -251,6 +251,7 @@ const sketchFunction = (sketch) => {
 
   //#region other functions
 
+  // TODO: This is needlessly clunky - add cursor handler and let it deal with updating cursors
   function updateCursor() {
     if (cursorIsSet) {
       if (!paletteMgr.shouldHandlePositionInput(sketch.mouseX, sketch.mouseY)) {
