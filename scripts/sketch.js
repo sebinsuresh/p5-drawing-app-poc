@@ -18,7 +18,6 @@ const sketchFunction = (sketch) => {
   const IS_PICKING_COLOR = 2;
 
   let currentState = IS_HOVERING;
-  let cursorIsSet = false;
 
   /** @type {UndoManager} */
   let undoMgr;
@@ -52,7 +51,7 @@ const sketchFunction = (sketch) => {
       return;
     }
 
-    if (paletteMgr.shouldHandlePositionInput(sketch.mouseX, sketch.mouseY)) {
+    if (paletteMgr.shouldHandlePosition(sketch.mouseX, sketch.mouseY)) {
       currentState = IS_PICKING_COLOR;
     } else {
       currentStrokeVertices.push([sketch.mouseX, sketch.mouseY]);
@@ -83,10 +82,10 @@ const sketchFunction = (sketch) => {
 
   sketch.touchEnded = () => {
     if (currentState === IS_PICKING_COLOR) {
-      if (!paletteMgr.shouldHandlePositionInput(sketch.mouseX, sketch.mouseY)) {
+      if (!paletteMgr.shouldHandlePosition(sketch.mouseX, sketch.mouseY)) {
         return;
       }
-      paletteMgr.handlePositionInput("select", sketch.mouseX, sketch.mouseY);
+      paletteMgr.handleClickAt(sketch.mouseX, sketch.mouseY);
     } else if (currentState === IS_DRAWING) {
       undoMgr.pushState(currentStrokeVertices);
       currentStrokeVertices = [];
@@ -101,7 +100,7 @@ const sketchFunction = (sketch) => {
       return;
     }
 
-    if (paletteMgr.shouldHandlePositionInput(sketch.mouseX, sketch.mouseY)) {
+    if (paletteMgr.shouldHandlePosition(sketch.mouseX, sketch.mouseY)) {
       currentState = IS_PICKING_COLOR;
     } else {
       currentStrokeVertices = [];
@@ -134,11 +133,11 @@ const sketchFunction = (sketch) => {
     }
 
     if (currentState === IS_PICKING_COLOR) {
-      if (!paletteMgr.shouldHandlePositionInput(sketch.mouseX, sketch.mouseY)) {
+      if (!paletteMgr.shouldHandlePosition(sketch.mouseX, sketch.mouseY)) {
         currentState = IS_HOVERING;
         return;
       }
-      paletteMgr.handlePositionInput("select", sketch.mouseX, sketch.mouseY);
+      paletteMgr.handleClickAt(sketch.mouseX, sketch.mouseY);
     } else if (currentState === IS_DRAWING) {
       undoMgr.pushState(currentStrokeVertices);
       currentStrokeVertices = [];
@@ -205,8 +204,8 @@ const sketchFunction = (sketch) => {
       return;
     }
 
-    if (currentState !== IS_DRAWING && paletteMgr.shouldHandleKeyInput(sketch.key)) {
-      paletteMgr.handleKeyInput(parseInt(sketch.key));
+    if (currentState !== IS_DRAWING && paletteMgr.isValidIndexNumber(parseInt(sketch.key))) {
+      paletteMgr.setPaletteAtIndex(parseInt(sketch.key));
     }
   };
 
@@ -251,18 +250,14 @@ const sketchFunction = (sketch) => {
 
   //#region other functions
 
-  // TODO: This is needlessly clunky - add cursor handler and let it deal with updating cursors
   function updateCursor() {
-    if (cursorIsSet) {
-      if (!paletteMgr.shouldHandlePositionInput(sketch.mouseX, sketch.mouseY)) {
-        sketch.cursor(sketch.ARROW);
-        cursorIsSet = false;
-      }
+    if (currentState === IS_DRAWING) {
+      return;
+    }
+    if (paletteMgr.shouldHandlePosition(sketch.mouseX, sketch.mouseY)) {
+      sketch.cursor(paletteMgr.getCursor());
     } else {
-      if (currentState !== IS_DRAWING && paletteMgr.shouldHandlePositionInput(sketch.mouseX, sketch.mouseY)) {
-        paletteMgr.handlePositionInput("hover", sketch.mouseX, sketch.mouseY);
-        cursorIsSet = true;
-      }
+      sketch.cursor(sketch.ARROW);
     }
   }
 

@@ -40,14 +40,12 @@ export class PaletteManager {
       );
 
       // Keybinding label
-      if (i < 10) {
-        this.#sketch.noStroke;
-        this.#sketch.fill(255 - this.#paletteColors[i]);
-        this.#sketch.text(
-          `${(i + 1) % 10}`,
-          this.#startPaletteX + i * this.#swatchWidth + 10,
-          this.#startPaletteY + 20
-        );
+      this.#sketch.noStroke;
+      this.#sketch.fill(255 - this.#paletteColors[i]);
+      if (i < 9) {
+        this.#sketch.text(i + 1, this.#startPaletteX + i * this.#swatchWidth + 10, this.#startPaletteY + 20);
+      } else if (i === this.#numColors - 1) {
+        this.#sketch.text(0, this.#startPaletteX + i * this.#swatchWidth + 10, this.#startPaletteY + 20);
       }
     }
     // show outline for active swatch
@@ -65,7 +63,7 @@ export class PaletteManager {
    * @param {number} x
    * @returns {number}
    */
-  getColorFromPosition(x) {
+  #getColorFromPosition(x) {
     const colorIndex = Math.floor(
       (this.#numColors * (x - this.#startPaletteX)) / (this.#numColors * this.#swatchWidth)
     );
@@ -76,14 +74,16 @@ export class PaletteManager {
     return this.#currentFillColor;
   }
 
-  // TODO: add something like an interface enforcing these methods?
+  getCursor() {
+    return this.#sketch.HAND;
+  }
 
   /**
    * @param {number} x
    * @param {number} y
    * @returns {boolean}
    */
-  shouldHandlePositionInput(x, y) {
+  shouldHandlePosition(x, y) {
     return (
       x > this.#startPaletteX &&
       y > this.#startPaletteY &&
@@ -93,36 +93,35 @@ export class PaletteManager {
   }
 
   /**
-   * @param {'hover' | 'select'} type
    * @param {number} x
    * @param {number} _y
    */
-  handlePositionInput(type, x, _y) {
-    if (type === "hover") {
-      // TODO: this shouldn't be palette manager's responsibility prob
-      this.#sketch.cursor(this.#sketch.HAND);
-    } else if (type === "select") {
-      this.#currentFillColor = this.getColorFromPosition(x);
-    }
+  handleClickAt(x, _y) {
+    this.#currentFillColor = this.#getColorFromPosition(x);
   }
 
   /**
-   * @param {string} key
+   * @param {number} n
    * @returns {boolean}
    */
-  shouldHandleKeyInput(key) {
-    const keyNumMaybe = parseInt(key);
-    return !isNaN(keyNumMaybe);
+  isValidIndexNumber(n) {
+    if (isNaN(n)) return false;
+    if (n < 0 || n > 9) return false;
+    if (this.#numColors < 10 && n === 0) return false;
+    if (this.#numColors < 10 && n <= this.#numColors) return true;
+    if (n >= 0 && n <= 9) return true;
+    return false;
   }
 
   /**
-   * @param {number} keyNum
+   * Index n goes from left-to-right: 1 - 9, then 0.
+   * @param {number} n
    */
-  handleKeyInput(keyNum) {
-    if (this.#numColors > 9 && keyNum === 0) {
-      this.#currentFillColor = this.#paletteColors[9];
-    } else if (keyNum <= this.#numColors && keyNum >= 1) {
-      this.#currentFillColor = this.#paletteColors[keyNum - 1];
+  setPaletteAtIndex(n) {
+    if (n === 0) {
+      this.#currentFillColor = this.#paletteColors[this.#paletteColors.length - 1];
+    } else if (n <= this.#numColors) {
+      this.#currentFillColor = this.#paletteColors[n - 1];
     }
   }
 }
